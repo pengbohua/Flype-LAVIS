@@ -1,0 +1,10 @@
+program: main.py  # replace this with the name of your training script
+method: random   # you can also choose other search methods such as grid or bayes
+metric:
+  name: validation_accuracy  # the name of the metric to optimize
+  goal: maximize  # maximize the metric
+parameters:
+  lr:
+    values: [1e-2, 1e-3, 1e-4]
+  train-batch-size:
+    values: [16, 64, 128]
