@@ -149,6 +149,7 @@ Congratulation for finishing Section A!
 To preprocess the data into a format similar to our baseline, use tools such as csv or json reader. **The closer the data is to a check-worthy format**, 
 the less effort will be required to customize the dataset. Note that Step 7 requires cross-task validation, so we do not expect the data format
 to change a lot.  Please save a copy of your preprocessing script for our format checking test.
+**Hint: For OCR, use one of the SOTA models easyocr. Check OCR/easyocr.ipynb and their awesome git [repo](https://github.com/JaidedAI/EasyOCR).**
 ### Step 2: Feature extraction for EmoRegCom_DATA
 mm_feature_extractor.py is a modified feature extractor from blip_feature_extractor.py for a different benchmark dataset. Please modify the script for EmoRegCom_DATA.
 ### Step 3: Train a Transformer Fusion Layer
