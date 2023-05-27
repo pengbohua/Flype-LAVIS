@@ -17,10 +17,11 @@ Download the [dataset](https://mega.nz/file/xWVxAbwa#ibbzHxkkl5A1SBMoMFsirrQ1uYB
 run the merge script to build symbolic links for image processing
 ```bash
 bash script/run_merge.sh
-And manually change your data as the following
+Your data directory should be as follows,
 data
 |
 en
+├── features
 ├── test_data
 |    └── images_labeled
 |        ├── 925657889473052672.jpg
@@ -60,7 +61,7 @@ Please use the following method to extract your own features as the features und
 ```bash
 bash scripts/run_feature_extraction_full.sh
 ```
-Put the extracted features and the data into the following structure,
+After extracting features to the features folder, use bash cmds to put the extracted features and the data into the following structure,
 ```bash
 prompt_ocr_adapter
 ├── test_data
@@ -135,15 +136,28 @@ Given only 64 examples for two classes, ideate some solutions to solve the probl
 Congratulation for finishing Section A!
 ## Section B: Train a baseline on EmoRegCom_DATA
 ### Step 0: Prepare the dataset
-```
-│   test
-│   ├── 1_72_0.jpg
-│   ├── 2_29_3.jpg
-│   ├── ...
-│   train
-│   ├── 0_3_4.jpg
-│   ├── 0_19_3.jpg
-│   ├── ...
+Again run the merge script to build symbolic links for image processing
+```bash
+bash script/YOUR_MERGE_SCRIPT_NOW.sh
+Your data directories should be similar to the following tree
+├── features
+├── test_data
+|    └── images_labeled
+|        ├── 1_72_0.jpg
+|        ├── 2_29_3.jpg
+|        └── ...
+└── train_data
+    └── images_labeled
+        ├── dev
+            └── 1032635895864877056.jpg   
+            └── ...           
+        ├── dev_test   
+            └── ...   
+        ├── merge
+            └── ...     
+        ├── train
+            └── 0_3_4.jpg  
+            └── ... 
 ├── dataset.csv
 ├── test_dataset.csv
 ├── test_data.csv
