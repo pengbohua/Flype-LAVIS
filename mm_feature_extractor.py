@@ -28,8 +28,7 @@ def get_feats(image_dir, text_dir, data_dir, out_file_name, split="train", promp
         tweet_id = tweet['image_name']
         tweet_text = normalizeTweet(tweet['text_input'])
         # ocr info are in the given data files
-        # tweet_ocr = normalizeTweet(tweet['ocr_text'])
-        tweet_ocr = None
+        tweet_ocr = normalizeTweet(tweet['ocr_text'])
         if not prompt:
             id_text_dict[tweet_id] = tweet_text + tweet_ocr
         elif not prompt and (not ocr):
@@ -94,57 +93,58 @@ if __name__ == '__main__':
 
     # train
     parser.add_argument("--train-data-dir", required=False, type=str,
-                        default="./MAMI",
+                        default="./MAMI/ocr_adapter",
                         help="The absolute path to the training data")
     parser.add_argument("--train-out-file-name",  required=False, type=str,
                         default="train_feats.json", help="Output feature file name")
 
     # dev
     parser.add_argument("--dev-data-dir", required=False, type=str,
-                        default="./MAMI",
+                        default="./MAMI/ocr_adapter",
                         help="The absolute path to the training data")
     parser.add_argument("--dev-out-file-name",  required=False, type=str,
                         default="dev_feats.json", help="Output feature file name")
     # dev_test
     parser.add_argument("--dev-test-data-dir", required=False, type=str,
-                        default="./MAMI",
+                        default="./MAMI/ocr_adapter",
                         help="The absolute path to the training data")
     parser.add_argument("--dev-test-out-file-name",  required=False, type=str,
                         default="dev_test_feats.json", help="Output feature file name")
 
-    # # prompt_adapter
-    # parser.add_argument("--merge-data-dir", required=False, type=str,
-    #                     default="./data/remove_soft_prompt",
-    #                     help="The absolute path to the training data")
-    # parser.add_argument("--merge-out-file-name",  required=False, type=str,
-    #                     default="merge_feats.json", help="Output feature file name")
-    #
-    #
-    # # test
-    # parser.add_argument("--test-data-dir", required=False, type=str,
-    #                     default="./data/remove_soft_prompt",
-    #                     help="The absolute path to the training data")
-    # parser.add_argument("--test-out-file-name",  required=False, type=str,
-    #                     default="test_feats.json", help="Output feature file name")
+    # prompt_adapter
+    parser.add_argument("--merge-data-dir", required=False, type=str,
+                        default="./MAMI/ocr_adapter",
+                        help="The absolute path to the training data")
+    parser.add_argument("--merge-out-file-name",  required=False, type=str,
+                        default="merge_feats.json", help="Output feature file name")
 
+
+    # test
+    parser.add_argument("--test-data-dir", required=False, type=str,
+                        default="./MAMI/ocr_adapter",
+                        help="The absolute path to the training data")
+    parser.add_argument("--test-out-file-name",  required=False, type=str,
+                        default="test_feats.json", help="Output feature file name")
+    parser.add_argument("--use-ocr",  required=True, type=bool,
+                        default=True, help="Apply OCR to the feature extraction")
     args = parser.parse_args()
 
-    ct23_train_image_dir = 'MAMI/train'
-    ct23_dev_image_dir = 'MAMI/train'
-    ct23_dev_test_image_dir = 'MAMI/train'
-    # ct23_test_image_dir = './data/en/test_data/images_labeled/test/'
-    # ct23_merge_image_dir = './data/en/train_data/images_labeled/merge/'
+    ct23_train_image_dir = 'MAMI/prompt_ocr_adapter/train_data/images_labeled/train'
+    ct23_dev_image_dir = 'MAMI/prompt_ocr_adapter/train_data/images_labeled/dev'
+    ct23_dev_test_image_dir = 'MAMI/prompt_ocr_adapter/train_data/images_labeled/dev_test'
+    ct23_test_image_dir = './MAMI/prompt_ocr_adapter/test_data/images_labeled/test/'
+    ct23_merge_image_dir = './MAMI/prompt_ocr_adapter/train_data/images_labeled/merge/'
 
-    ct23_train_text_dir = 'MAMI/train.json'
-    ct23_dev_text_dir = 'MAMI/dev.json'
-    ct23_dev_test_text_dir = 'MAMI/test.json'
-    # ct23_test_text_dir = './data/en/test_data/CT23_1A_checkworthy_multimodal_english_test.jsonl'
-    # ct23_merge_text_dir = './data/en/train_data/CT23_1A_checkworthy_multimodal_english_merge.jsonl'
+    ct23_train_text_dir = 'MAMI/prompt_ocr_adapter/train_data/train.json'
+    ct23_dev_text_dir = 'MAMI/prompt_ocr_adapter/train_data/dev.json'
+    ct23_dev_test_text_dir = 'MAMI/prompt_ocr_adapter/train_data/dev_test.json'
+    ct23_test_text_dir = 'MAMI/prompt_ocr_adapter/test_data/test.json'
+    ct23_merge_text_dir = 'MAMI/prompt_ocr_adapter/train_data/merge.json'
 
-    get_feats(ct23_dev_image_dir, ct23_dev_text_dir, args.dev_data_dir, args.dev_out_file_name, prompt=True, ocr=False)
-    get_feats(ct23_dev_test_image_dir, ct23_dev_test_text_dir, args.dev_test_data_dir, args.dev_test_out_file_name, prompt=True, ocr=False)
-    # get_feats(ct23_test_image_dir, ct23_test_text_dir, args.test_data_dir, args.test_out_file_name, prompt=True, ocr=True)
+    get_feats(ct23_dev_image_dir, ct23_dev_text_dir, args.dev_data_dir, args.dev_out_file_name, prompt=False, ocr=args.use_ocr)
+    get_feats(ct23_dev_test_image_dir, ct23_dev_test_text_dir, args.dev_test_data_dir, args.dev_test_out_file_name, prompt=False, ocr=args.use_ocr)
+    get_feats(ct23_test_image_dir, ct23_test_text_dir, args.test_data_dir, args.test_out_file_name, prompt=False, ocr=args.use_ocr)
 
-    get_feats(ct23_train_image_dir, ct23_train_text_dir, args.train_data_dir, args.train_out_file_name, prompt=True, ocr=False)
-    # get_feats(ct23_merge_image_dir, ct23_merge_text_dir, args.merge_data_dir, args.merge_out_file_name, prompt=True, ocr=True)
+    get_feats(ct23_train_image_dir, ct23_train_text_dir, args.train_data_dir, args.train_out_file_name, prompt=False, ocr=args.use_ocr)
+    get_feats(ct23_merge_image_dir, ct23_merge_text_dir, args.merge_data_dir, args.merge_out_file_name, prompt=False, ocr=args.use_ocr)
 

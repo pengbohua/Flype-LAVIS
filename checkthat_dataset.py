@@ -6,7 +6,7 @@ import jsonlines
 
 
 class MMDataset(Dataset):
-    def __init__(self, image_data, text_data, multimodal_data, labels, binary=True):
+    def __init__(self, image_data, text_data, multimodal_data, labels):
         self.image_data = image_data
         self.text_data = text_data
         self.multimodal_data = multimodal_data
@@ -22,14 +22,14 @@ class MMDataset(Dataset):
         text = self.text_data[index]
         label = self.labels[index]
         multimodal = self.multimodal_data[index]
-        return image, text, multimodal, torch.LongTensor(label)
+        return image, text, multimodal, label
 
     def convert_labels(self, labels):
         converted_labels = []
         for label in labels:
-            if label[1] == '1':
+            if label[1] == 'Yes':
                 converted_labels.append(1)
-            elif label[1] == '0':
+            elif label[1] == 'No':
                 converted_labels.append(0)
             else:
                 raise ValueError

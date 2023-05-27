@@ -1,6 +1,11 @@
 # A Tiny Metaverse of Multimodal Natural Language Understanding Classification
-
 The aim of this task is to determine whether a claim in a tweet is worth fact-checking. Typical approaches to make that decision require to either resort to the judgments of professional fact-checkers or to human annotators to answer several auxiliary questions such as "does it contain a verifiable factual claim?", and "is it harmful?", before deciding on the final check-worthiness label.
+
+<p align="center">
+    <br>
+    <img src="assets/img.png"/>
+    <br>
+<p>
 
 ## Guidelines
 The task is offered in Arabic and English. For simplicity, please focus on solving the English contest only!
@@ -9,7 +14,10 @@ The scripts of our winning model should be able to run on a single GPU (within 1
 
 ### Step 0: Prepare the dataset
 Download the [dataset](https://mega.nz/file/xWVxAbwa#ibbzHxkkl5A1SBMoMFsirrQ1uYBOOqRmZ-KjT1flQgI), and unzip the structure as follows,
+run the merge script to build symbolic links for image processing
 ```bash
+bash script/run_merge.sh
+And manually change your data as the following
 data
 |
 en

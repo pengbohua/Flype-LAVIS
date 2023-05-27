@@ -11,9 +11,9 @@ import torch
 import os
 import sys
 sys.path.append('preprocessing')
-from scorer.subtask_1 import evaluate
+from scorer.subtask_mami import evaluate
 from format_checker.subtask_1 import check_format
-from checkthat_dataset import MMDataset, MMTestDataset, collate_func
+from mami_dataset import MMDataset, MMTestDataset, collate_func
 from torch.utils.data import DataLoader
 from trainer.trainer import CustomTrainer
 import wandb
@@ -64,28 +64,29 @@ def train_qformer(data_dir, split, train_fpath, test_fpath, args):
 
     tr_feats = json.load(open(join(data_dir, "features", "merge_feats.json")))  # format {"imgfeats":{"tweetid":768d}}
     te_feats = json.load(open(join(data_dir, "features", "%s_feats.json"%(split))))
-    _train_id_labels = [[obj["tweet_id"], obj["class_label"]] for obj in jsonlines.open(join(data_dir, train_fpath))]    # format: [["tweetid": "Yes"]]
+    _train_id_labels = [[obj["image_name"], obj["class_label"]] for obj in jsonlines.open(join(data_dir, train_fpath))]    # format: [["tweetid": "Yes"]]
     if "dev" in test_fpath:
-        test_id_labels = [[obj["tweet_id"], obj["class_label"]] for obj in jsonlines.open(join(data_dir, test_fpath))]
+        test_id_labels = [[obj["image_name"], obj["class_label"]] for obj in jsonlines.open(join(data_dir, test_fpath))]
     else:
         raise ValueError("dev not in validation set name")
 
     tr_img_feats = []
     tr_text_feats = []
     tr_multi_feats = []
-    train_id_labels = []
+    train_ids_labels = []
     for obj in _train_id_labels:
+        image_id = obj[0][:-4]
         try:
-            tr_img_feat = tr_feats["imgfeats"][obj[0]]
-            tr_text_feat = tr_feats["textfeats"][obj[0]]
-            tr_multi_feat = tr_feats["multifeats"][obj[0]]
+            tr_img_feat = tr_feats["imgfeats"][image_id]
+            tr_text_feat = tr_feats["textfeats"][image_id]
+            tr_multi_feat = tr_feats["multifeats"][image_id]
         except KeyError:
             continue
         else:
             tr_multi_feats.append(tr_multi_feat)
             tr_img_feats.append(tr_img_feat)
             tr_text_feats.append(tr_text_feat)
-            train_id_labels.append(obj)
+            train_ids_labels.append(obj)
 
     tr_img_feats = np.array(tr_img_feats)
     tr_text_feats = np.array(tr_text_feats)
@@ -94,19 +95,19 @@ def train_qformer(data_dir, split, train_fpath, test_fpath, args):
     tr_img_feat = torch.from_numpy(tr_img_feats).float()
     # tr_img_feat = torch.randn_like(tr_img_feat)     # replace image with random noise for ablation study
     tr_text_feat = torch.from_numpy(tr_text_feats).float()
-    # tr_text_feat = torch.randn_like(tr_text_feat) # replace text with random noise for ablation study
+    tr_text_feat = torch.randn_like(tr_text_feat) # replace text with random noise for ablation study
     tr_multi_feat = torch.from_numpy(tr_multi_feats).float()
 
-    train_dataset = MMDataset(tr_img_feat, tr_text_feat, tr_multi_feat, train_id_labels)
+    train_dataset = MMDataset(tr_img_feat, tr_text_feat, tr_multi_feat, train_ids_labels)
     # 820 / 2356
     # save valid outputs
-    val_img_feats = [te_feats["imgfeats"][obj[0]] for obj in test_id_labels]
+    val_img_feats = [te_feats["imgfeats"][obj[0][:-4]] for obj in test_id_labels]
     val_img_feats = np.array(val_img_feats)
     val_img_feats = torch.from_numpy(val_img_feats).float()
-    val_text_feats = [te_feats["textfeats"][obj[0]] for obj in test_id_labels]
+    val_text_feats = [te_feats["textfeats"][obj[0][:-4]] for obj in test_id_labels]
     val_text_feats = np.array(val_text_feats)
     val_text_feats = torch.from_numpy(val_text_feats).float()
-    val_multi_feats = [te_feats["multifeats"][obj[0]] for obj in test_id_labels]
+    val_multi_feats = [te_feats["multifeats"][obj[0][:-4]] for obj in test_id_labels]
     val_multi_feats = np.array(val_multi_feats)
     val_multi_feats = torch.from_numpy(val_multi_feats).float()
     valid_dataset = MMDataset(val_img_feats, val_text_feats, val_multi_feats, test_id_labels)
@@ -123,6 +124,7 @@ def train_qformer(data_dir, split, train_fpath, test_fpath, args):
     trainer = CustomTrainer(
         model=model,
         args=training_args,
+        loss_type=args.loss_type,
         train_dataset=train_dataset,
         eval_dataset=valid_dataset,
         data_collator=collate_func,
@@ -132,15 +134,15 @@ def train_qformer(data_dir, split, train_fpath, test_fpath, args):
     )
     trainer.train()
     print("Saving checkpoint in checkpoints/")
-    os.makedirs("checkpoints/mlp_ocr", exist_ok=True)
-    trainer.save_model("checkpoints/mlp_ocr/bs_{}_lr{}_heads{}_d{}.pt".format(args.train_batch_size, args.lr, args.heads, args.d))
+    os.makedirs("checkpoints/remove_text", exist_ok=True)
+    trainer.save_model("checkpoints/remove_text/bs_{}_lr{}_heads{}_d{}.pt".format(args.train_batch_size, args.lr, args.heads, args.d))
 
 
 def test_model(data_dir, split, test_fpath, results_fpath, lang, model_id='imagebert', args=None):
 
     te_feats = json.load(open(join(data_dir, "features", "%s_feats.json"%(split))))
 
-    test_id_labels = [obj["tweet_id"] for obj in jsonlines.open(join(data_dir, test_fpath))]
+    test_id_labels = [obj["image_name"][:-4] for obj in jsonlines.open(join(data_dir, test_fpath))]
     te_img_feats = [te_feats["imgfeats"][obj] for obj in test_id_labels]
     te_img_feats = np.array(te_img_feats)
     te_text_feats = [te_feats["textfeats"][obj] for obj in test_id_labels]
@@ -159,13 +161,13 @@ def test_model(data_dir, split, test_fpath, results_fpath, lang, model_id='image
         model = MLPClassifier(hidden_dim=args.d)
     else:
         raise NotImplementedError
-    print("Load checkpoints from checkpoints/mlp_ocr/bs_{}_lr{}_heads{}_d{}.pt/pytorch_model.bin".format(args.train_batch_size, args.lr, args.heads, args.d))
-    state_dict = torch.load("checkpoints/mlp_ocr/bs_{}_lr{}_heads{}_d{}.pt/pytorch_model.bin".format(args.train_batch_size, args.lr, args.heads, args.d))
+    print("Load checkpoints from checkpoints/remove_text/bs_{}_lr{}_heads{}_d{}.pt/pytorch_model.bin".format(args.train_batch_size, args.lr, args.heads, args.d))
+    state_dict = torch.load("checkpoints/remove_text/bs_{}_lr{}_heads{}_d{}.pt/pytorch_model.bin".format(args.train_batch_size, args.lr, args.heads, args.d))
     model.load_state_dict(state_dict)
     model = model.cuda()
     ## Write test file in format
     with open(results_fpath, "w") as results_file:
-        results_file.write("tweet_id\tclass_label\trun_id\n")
+        results_file.write("image_name\tclass_label\trun_id\n")
 
         for i, batch_dict in enumerate(test_loader):
             tweet_id = test_dataset.tweet_ids[i]
@@ -180,22 +182,22 @@ def test_model(data_dir, split, test_fpath, results_fpath, lang, model_id='image
             with torch.no_grad():
                 outputs = model(**batch_dict)
                 prd = torch.sigmoid(outputs['logits']).item()
-            if prd > 0.25:
-                label = "Yes"
+            if prd > 0.5:      # TODO hyper parameter
+                label = 1
             else:
-                label = "No"
+                label = 0
 
-            results_file.write("{}\t{}\t{}\n".format(tweet_id, label, "{}".format(model_id)))
+            results_file.write("{}.jpg\t{}\t{}\n".format(tweet_id, label, "{}".format(model_id)))
 
     gold_fpath = join(data_dir, f'{basename(test_fpath)}')
 
     # evaluation on dev
-    if check_format(results_fpath):
-        acc, precision, recall, f1 = evaluate(gold_fpath, results_fpath, subtask="A")
-        logging.info(f"Qformer for {lang} Accuracy (positive class): {acc}")
-        logging.info(f"Qformer for {lang} Precision (positive class): {precision}")
-        logging.info(f"Qformer for {lang} Recall (positive class): {recall}")
-        logging.info(f"Qformer for {lang} F1 (positive class): {f1}")
+    # if check_format(results_fpath):
+    acc, precision, recall, f1 = evaluate(gold_fpath, results_fpath, subtask="A")
+    logging.info(f"Qformer for {lang} Accuracy (positive class): {acc}")
+    logging.info(f"Qformer for {lang} Precision (positive class): {precision}")
+    logging.info(f"Qformer for {lang} Recall (positive class): {recall}")
+    logging.info(f"Qformer for {lang} F1 (positive class): {f1}")
     with open("results/hypersearch.txt", "a") as f:
         f.write("bs_{}_lr{}_heads{}_d{}\t {}".format(args.train_batch_size, args.lr, args.heads, args.d, f1))
 
@@ -204,17 +206,17 @@ def supervised_training(data_dir, test_split, train_fpath, test_fpath, lang, arg
     # run training function
     train_qformer(data_dir, test_split, train_fpath, test_fpath, args)
     # run test function on dev_test
-    test_model(data_dir="data/ocr_en/train_data/", split="dev_test", test_fpath='CT23_1A_checkworthy_multimodal_english_dev_test.jsonl',
-               results_fpath="results/mlp_ocr_en_subtask1A_en_dev_test.tsv".format(args.train_batch_size, args.lr, args.heads, args.d), lang=lang, args=args, model_id="baseline_adapter")
+    test_model(data_dir="MAMI/ocr_adapter/train_data/", split="dev_test", test_fpath='dev_test.json',
+               results_fpath="results/mami/remove_text_en_binary_en_dev_test.tsv".format(args.train_batch_size, args.lr, args.heads, args.d), lang=lang, args=args, model_id="baseline_adapter")
     # run test function on test
-    test_model(data_dir="data/ocr_en/test_data/", split="test", test_fpath='CT23_1A_checkworthy_multimodal_english_test_gold.jsonl',
-               results_fpath="results/mlp_ocr_en_subtask1A_en_test.tsv".format(args.train_batch_size, args.lr, args.heads, args.d), lang=lang, args=args, model_id="baseline_adapter")
+    test_model(data_dir="MAMI/ocr_adapter/test_data/", split="test", test_fpath='test_gold.json',
+               results_fpath="results/mami/remove_text_en_binary_en_test.tsv".format(args.train_batch_size, args.lr, args.heads, args.d), lang=lang, args=args, model_id="baseline_adapter")
 
 
 def main(config=None):
     parser = argparse.ArgumentParser()
     parser.add_argument("--data-dir", required=False, type=str,
-                        default="data/ocr_en/train_data",
+                        default="MAMI/train_data",
                         help="The absolute path to the training data")
     parser.add_argument("--test-split", "-s", required=False, type=str,
                         default="dev", help="Test split name")
@@ -232,6 +234,8 @@ def main(config=None):
                         help="training batch size")
     parser.add_argument("--heads", required=False, type=int, default=12,
                         help="heads")
+    parser.add_argument("--loss-type", required=True, type=str, default='bfocal',
+                        help="bfocal or wbce")
     parser.add_argument("--d", required=False, type=int, default=480,
                         help="hidden_dimension")
     parser.add_argument("--num-layers", required=False, type=int, default=1,
