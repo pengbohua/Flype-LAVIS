@@ -191,3 +191,9 @@ Please write a brief README file on how to run your script.
 zip -r submission.zip ./PATH_TO_RESULT_AND_SCRIPT 
 ```
 Congratulation for finishing Section B! You just did a great job!
+## Final results
+Flype ranks at top3 in CheckThat Task1A!
+<figure>
+<img src="./results.png" style="width: 76%:"/>
+    <figcaption style="text-align: center">Figure 2. Results for CheckThat! Task1A.</figcaption>
+</figure>
