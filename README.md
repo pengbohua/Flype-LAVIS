@@ -1,15 +1,12 @@
-# A Tiny Metaverse of Multimodal Natural Language Understanding Classification
-The aim of this task is to determine whether a claim in a tweet is worth fact-checking. Typical approaches to make that decision require to either resort to the judgments of professional fact-checkers or to human annotators to answer several auxiliary questions such as "does it contain a verifiable factual claim?", and "is it harmful?", before deciding on the final check-worthiness label.
-
-<p align="center">
-    <br>
-    <img src="assets/img.png"/>
-    <br>
-<p>
-
+# Flype :flying_disc: : Foundational Models for Parameter Efficient Visual Language Understanding
+To perform parameter-efficient visual language classification, we select the VQA foundation model, BLIP-2. 
+As shown in the following figures, we propose parameter-efficient prompt-based learning, FLYPE, for visual language understanding in computational social science (CSS). 
+<figure>
+<img src="./assets/flype.png" style="width: 76%:"/>
+    <figcaption style="text-align: center">Figure 1. The universal model architecture of FLYPE, cross-modal prompt tuning for large visual language models</figcaption>
+</figure>
 ## Guidelines
-The task is offered in Arabic and English. For simplicity, please focus on solving the English contest only!
-The scripts of our winning model should be able to run on a single GPU (within 12GB) effortlessly. Both sections are marked while the Section A has 30% and Section B has 70%.
+The task is offered in Arabic and English. The scripts of our winning model should be able to run on a single GPU. Both sections are marked while the Section A has 30% and Section B has 70%.
 ## Section A: Run the winning model (Check-Worthiness)
 
 ### Step 0: Prepare the dataset
