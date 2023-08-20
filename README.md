@@ -2,7 +2,7 @@
 To perform parameter-efficient visual language classification, we select the VQA foundation model, BLIP-2. 
 As shown in the following figures, we propose parameter-efficient prompt-based learning, FLYPE, for visual language understanding in computational social science (CSS). 
 <figure>
-<img src="./assets/flype.png" style="width: 76%:"/>
+<img src="./flype.png" style="width: 66%:"/>
     <figcaption style="text-align: center">Figure 1. The universal model architecture of FLYPE, cross-modal prompt tuning for large visual language models</figcaption>
 </figure>
 ## Guidelines
